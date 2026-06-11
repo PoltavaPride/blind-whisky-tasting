@@ -1,0 +1,40 @@
+.center {
+  text-align: center;
+}
+
+.confirm-card {
+  text-align: center;
+}
+
+.confirm-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.recap {
+  margin: 1.6rem 0 0;
+  display: grid;
+  gap: 0.55rem;
+  text-align: left;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  dt {
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+  }
+}

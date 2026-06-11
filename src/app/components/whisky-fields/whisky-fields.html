@@ -1,0 +1,68 @@
+<div class="whisky-fields" [formGroup]="group()">
+  <div class="field">
+    <label for="country">Country</label>
+    <select id="country" formControlName="country">
+      <option value="" disabled>Select a country…</option>
+      @for (country of countries; track country) {
+        <option [value]="country">{{ country }}</option>
+      }
+    </select>
+    @if (showError('country')) {
+      <p class="field-error">Please choose a country.</p>
+    }
+  </div>
+
+  <div class="field">
+    <label for="distillery">Distillery</label>
+    <select id="distillery" formControlName="distillery">
+      <option value="" disabled>Select a distillery…</option>
+      @for (distillery of distilleries(); track distillery.name) {
+        <option [value]="distillery.name">
+          {{ distillery.name }}@if (distillery.region) { · {{ distillery.region }}}
+        </option>
+      }
+    </select>
+    @if (showError('distillery')) {
+      <p class="field-error">Please choose a distillery.</p>
+    }
+  </div>
+
+  <div class="field">
+    <label for="age">Age</label>
+    <select id="age" formControlName="age">
+      <option value="" disabled>Select an age…</option>
+      @for (age of ages; track age) {
+        <option [value]="age">{{ age }}</option>
+      }
+    </select>
+    @if (showError('age')) {
+      <p class="field-error">Please choose an age.</p>
+    }
+  </div>
+
+  <div class="field">
+    <label for="caskType">Cask Type</label>
+    <select id="caskType" formControlName="caskType">
+      <option value="" disabled>Select a cask type…</option>
+      @for (cask of caskTypes; track cask) {
+        <option [value]="cask">{{ cask }}</option>
+      }
+    </select>
+    @if (showError('caskType')) {
+      <p class="field-error">Please choose a cask type.</p>
+    }
+  </div>
+
+  <div class="field">
+    <label for="strength">Strength / ABV</label>
+    <select id="strength" formControlName="strength">
+      <option value="" disabled>Select a strength…</option>
+      @for (strength of strengths; track strength) {
+        <option [value]="strength">{{ strength }}</option>
+      }
+    </select>
+    @if (showError('strength')) {
+      <p class="field-error">Please choose a strength.</p>
+    }
+  </div>
+</div>

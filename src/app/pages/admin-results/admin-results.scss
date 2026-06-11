@@ -1,0 +1,134 @@
+.center {
+  text-align: center;
+}
+
+.bottle-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.bottle-grid {
+  margin: 1rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+
+  dt {
+    color: var(--muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.2rem;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+    color: var(--gold-bright);
+  }
+}
+
+.empty-card .empty-icon {
+  font-size: 2.2rem;
+  margin: 0 0 0.4rem;
+}
+
+.table-card {
+  padding: 0.4rem;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  min-width: 760px;
+
+  th,
+  td {
+    padding: 0.7rem 0.8rem;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  thead th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody tr + tr td {
+    border-top: 1px solid rgba(212, 164, 76, 0.1);
+  }
+
+  tbody tr:hover td {
+    background: rgba(212, 164, 76, 0.05);
+  }
+}
+
+.rank-col {
+  text-align: center;
+  width: 2.6rem;
+}
+
+.rank {
+  font-size: 1.05rem;
+}
+
+.nickname {
+  font-weight: 600;
+  color: var(--gold-bright);
+}
+
+td.correct {
+  color: var(--success);
+}
+
+.tick {
+  margin-left: 0.25rem;
+  font-weight: 700;
+}
+
+.score-col {
+  text-align: center;
+}
+
+.score-pill {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(212, 164, 76, 0.12);
+  font-weight: 700;
+  color: var(--gold-bright);
+
+  &.score-perfect {
+    background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+    color: #1a1208;
+    border-color: transparent;
+  }
+}
+
+.time-col {
+  font-variant-numeric: tabular-nums;
+}
+
+.results-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 1.4rem;
+  flex-wrap: wrap;
+}

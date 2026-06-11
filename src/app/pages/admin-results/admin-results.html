@@ -1,0 +1,118 @@
+<section class="page page-wide">
+  @if (round() === undefined) {
+    <p class="muted center">Loading…</p>
+  } @else if (round() === null) {
+    <div class="card center">
+      <h1>Round not found</h1>
+      <p class="muted">This tasting round doesn't exist or has been removed.</p>
+      <a class="btn btn-primary" routerLink="/admin">Back to dashboard</a>
+    </div>
+  } @else {
+    @if (round(); as r) {
+      <header class="page-head">
+        <p class="eyebrow">Results · Round {{ r.id }}</p>
+        <h1>{{ r.label || 'Tasting Leaderboard' }}</h1>
+        <p class="lede">
+          Scores update automatically while guests submit. One point per
+          correct field — five is a perfect palate.
+        </p>
+      </header>
+
+      <div class="card bottle-card">
+        <div class="bottle-card-head">
+          <h3>The Bottle</h3>
+          <button
+            class="btn btn-ghost btn-sm"
+            type="button"
+            (click)="bottleRevealed.set(!bottleRevealed())"
+          >
+            {{ bottleRevealed() ? 'Hide' : 'Reveal' }}
+          </button>
+        </div>
+        @if (bottleRevealed()) {
+          <dl class="bottle-grid">
+            @for (field of fields; track field) {
+              <div>
+                <dt>{{ fieldLabels[field] }}</dt>
+                <dd>{{ r.bottle[field] }}</dd>
+              </div>
+            }
+          </dl>
+        } @else {
+          <p class="muted">
+            Hidden so you can screen-share without spoiling the reveal.
+          </p>
+        }
+      </div>
+
+      @if (guesses().length === 0) {
+        <div class="card center empty-card">
+          <p class="empty-icon">⏳</p>
+          <p>No guesses yet — waiting for the first brave palate.</p>
+          <p class="muted">
+            Share the QR code from the
+            <a routerLink="/admin">host dashboard</a> to let guests join.
+          </p>
+        </div>
+      } @else {
+        <div class="card table-card">
+          <div class="table-scroll">
+            <table class="results-table">
+              <thead>
+                <tr>
+                  <th class="rank-col">#</th>
+                  <th>Participant</th>
+                  <th>Country</th>
+                  <th>Distillery</th>
+                  <th>Age</th>
+                  <th>Cask Type</th>
+                  <th>Strength</th>
+                  <th class="score-col">Score</th>
+                  <th>Submitted</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (guess of guesses(); track guess.id; let i = $index) {
+                  <tr>
+                    <td class="rank-col rank">
+                      @switch (i) {
+                        @case (0) { 🥇 }
+                        @case (1) { 🥈 }
+                        @case (2) { 🥉 }
+                        @default { {{ i + 1 }} }
+                      }
+                    </td>
+                    <td class="nickname">{{ guess.firstName }} {{ guess.lastName }}</td>
+                    @for (field of fields; track field) {
+                      <td [class.correct]="bottleRevealed() && guess.correctness[field]">
+                        {{ guess.answers[field] }}
+                        @if (bottleRevealed() && guess.correctness[field]) {
+                          <span class="tick">✓</span>
+                        }
+                      </td>
+                    }
+                    <td class="score-col">
+                      <span class="score-pill" [class.score-perfect]="guess.score === 5">
+                        {{ guess.score }}/5
+                      </span>
+                    </td>
+                    <td class="muted time-col">
+                      {{ guess.submittedAt | date: 'HH:mm:ss' }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <div class="results-actions">
+        <button class="btn btn-ghost" type="button" (click)="refresh()">
+          Refresh now
+        </button>
+        <a class="btn btn-ghost" routerLink="/admin">Host dashboard</a>
+      </div>
+    }
+  }
+</section>

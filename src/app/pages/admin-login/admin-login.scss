@@ -1,0 +1,18 @@
+.center {
+  text-align: center;
+}
+
+.reject-note {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid rgba(224, 101, 79, 0.45);
+  background: rgba(224, 101, 79, 0.12);
+  color: var(--error);
+  font-size: 0.9rem;
+}
+
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: wait;
+}

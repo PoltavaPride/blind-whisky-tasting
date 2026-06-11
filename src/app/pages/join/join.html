@@ -1,0 +1,58 @@
+<section class="page page-narrow">
+  @if (loading()) {
+    <p class="muted center">Pouring…</p>
+  } @else if (round() === null) {
+    <div class="card center">
+      <h1>Round not found</h1>
+      <p class="muted">
+        This tasting round doesn't exist or has been removed. Ask your host
+        for a fresh QR code.
+      </p>
+    </div>
+  } @else {
+    <header class="page-head center">
+      <p class="eyebrow">Blind Tasting</p>
+      <h1>Welcome to the Table</h1>
+      <p class="lede">
+        A mystery dram awaits. Introduce yourself so your host knows whose
+        palate to praise.
+      </p>
+    </header>
+
+    <form class="card form-card" [formGroup]="joinForm" (ngSubmit)="join()">
+      <div class="field">
+        <label for="firstName">First Name</label>
+        <input
+          id="firstName"
+          type="text"
+          formControlName="firstName"
+          placeholder="e.g. Hanna"
+          maxlength="30"
+          autocomplete="given-name"
+        />
+        @if (nameError('firstName'); as error) {
+          <p class="field-error">{{ error }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="lastName">Last Name</label>
+        <input
+          id="lastName"
+          type="text"
+          formControlName="lastName"
+          placeholder="e.g. Marchenko"
+          maxlength="30"
+          autocomplete="family-name"
+        />
+        @if (nameError('lastName'); as error) {
+          <p class="field-error">{{ error }}</p>
+        }
+      </div>
+
+      <button class="btn btn-primary btn-block" type="submit">
+        Start Guessing
+      </button>
+    </form>
+  }
+</section>

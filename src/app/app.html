@@ -1,0 +1,21 @@
+<div class="shell">
+  <header class="topbar">
+    <a routerLink="/admin" class="brand">
+      <span class="brand-glass" aria-hidden="true">🥃</span>
+      <span class="brand-text">Blind <em>Whisky</em> Tasting</span>
+    </a>
+    @if (auth.isAuthenticated()) {
+      <button class="btn btn-ghost btn-sm sign-out" type="button" (click)="signOut()">
+        Sign out
+      </button>
+    }
+  </header>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+
+  <footer class="footer">
+    <p>Sip responsibly</p>
+  </footer>
+</div>

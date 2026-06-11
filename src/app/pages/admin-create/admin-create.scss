@@ -1,0 +1,142 @@
+.share-card {
+  text-align: center;
+}
+
+.share-head h2 {
+  margin: 0.6rem 0 0.2rem;
+}
+
+.bottle-summary {
+  margin: 1.4rem 0;
+  display: grid;
+  gap: 0.55rem;
+  text-align: left;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  dt {
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+  }
+}
+
+.qr-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.2rem 0 0.4rem;
+}
+
+.qr-hint {
+  margin: 0;
+}
+
+.join-link {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: 0.8rem;
+  color: var(--gold-bright);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+}
+
+.share-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 1.4rem;
+  flex-wrap: wrap;
+}
+
+.rounds-card h3 {
+  margin-top: 0;
+}
+
+.rounds-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 0;
+
+    & + li {
+      border-top: 1px solid var(--border);
+    }
+  }
+}
+
+.round-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.round-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+  background: rgba(8, 5, 2, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.modal {
+  width: 100%;
+  max-width: 420px;
+
+  h3 {
+    margin-top: 0;
+  }
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-top: 1.4rem;
+  flex-wrap: wrap;
+}
+
+.round-label {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.round-date {
+  font-size: 0.8rem;
+}

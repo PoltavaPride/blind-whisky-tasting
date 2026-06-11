@@ -1,0 +1,129 @@
+<section class="page">
+  <header class="page-head">
+    <p class="eyebrow">Host Dashboard</p>
+    <h1>Create a Tasting Round</h1>
+    <p class="lede">
+      Enter the bottle's true details, then share the QR code with your
+      guests. Their guesses stay blind until you reveal the results.
+    </p>
+  </header>
+
+  @if (!createdRound()) {
+    <form class="card form-card" [formGroup]="bottleForm" (ngSubmit)="saveBottle()">
+      <div class="field">
+        <label for="label">Round Label <span class="optional">(optional, only you see this)</span></label>
+        <input
+          id="label"
+          type="text"
+          [formControl]="labelControl"
+          placeholder="e.g. Friday Night — Bottle #2"
+          maxlength="60"
+        />
+      </div>
+
+      <app-whisky-fields [group]="bottleForm" />
+
+      <button class="btn btn-primary btn-block" type="submit">
+        Save Bottle
+      </button>
+    </form>
+  } @else {
+    @if (createdRound(); as round) {
+      <div class="card share-card">
+        <div class="share-head">
+          <span class="badge badge-success">Round created</span>
+          <h2>{{ round.label || 'Untitled round' }}</h2>
+          <p class="muted">Round ID: {{ round.id }}</p>
+        </div>
+
+        <dl class="bottle-summary">
+          <div><dt>Country</dt><dd>{{ round.bottle.country }}</dd></div>
+          <div><dt>Distillery</dt><dd>{{ round.bottle.distillery }}</dd></div>
+          <div><dt>Age</dt><dd>{{ round.bottle.age }}</dd></div>
+          <div><dt>Cask</dt><dd>{{ round.bottle.caskType }}</dd></div>
+          <div><dt>Strength</dt><dd>{{ round.bottle.strength }}</dd></div>
+        </dl>
+
+        @if (!showQr()) {
+          <button class="btn btn-primary btn-block" type="button" (click)="showQr.set(true)">
+            Generate QR Code
+          </button>
+        } @else {
+          <div class="qr-panel">
+            <app-qr-code [data]="joinUrl(round)" />
+            <p class="muted qr-hint">Guests scan to join this round</p>
+            <code class="join-link">{{ joinUrl(round) }}</code>
+            <button class="btn btn-ghost" type="button" (click)="copyLink(round)">
+              {{ copied() ? 'Copied ✓' : 'Copy link' }}
+            </button>
+          </div>
+        }
+
+        <div class="share-actions">
+          <a class="btn btn-ghost" [routerLink]="['/admin/results', round.id]">
+            View results
+          </a>
+          <button class="btn btn-ghost" type="button" (click)="startNewRound()">
+            New round
+          </button>
+        </div>
+      </div>
+    }
+  }
+
+  @if (previousRounds().length > 0) {
+    <div class="card rounds-card">
+      <h3>Previous Rounds</h3>
+      <ul class="rounds-list">
+        @for (round of previousRounds(); track round.id) {
+          <li>
+            <div class="round-info">
+              <span class="round-label">{{ round.label || round.bottle.distillery }}</span>
+              <span class="muted round-date">{{ round.createdAt | date: 'MMM d, HH:mm' }}</span>
+            </div>
+            <div class="round-actions">
+              <a class="btn btn-ghost btn-sm" [routerLink]="['/admin/results', round.id]">
+                Results
+              </a>
+              <button
+                class="btn btn-danger btn-sm"
+                type="button"
+                (click)="pendingDelete.set(round)"
+                [attr.aria-label]="'Remove round ' + (round.label || round.bottle.distillery)"
+              >
+                Remove
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (pendingDelete(); as round) {
+    <div class="modal-backdrop" (click)="pendingDelete.set(null)">
+      <div
+        class="card modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-title"
+        (click)="$event.stopPropagation()"
+      >
+        <h3 id="delete-title">Remove this round?</h3>
+        <p class="muted">
+          “{{ round.label || round.bottle.distillery }}” and all guesses
+          submitted for it will be gone for good. Guests' QR codes for this
+          round will stop working.
+        </p>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" type="button" (click)="pendingDelete.set(null)">
+            Cancel
+          </button>
+          <button class="btn btn-danger" type="button" (click)="confirmDelete()">
+            Remove round
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

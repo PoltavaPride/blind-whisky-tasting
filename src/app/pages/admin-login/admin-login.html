@@ -1,0 +1,49 @@
+<section class="page page-narrow">
+  <header class="page-head center">
+    <p class="eyebrow">Host Access</p>
+    <h1>The Cellar Is Locked</h1>
+    <p class="lede">
+      Sign in to create tasting rounds and see your guests' scores.
+    </p>
+  </header>
+
+  <form class="card form-card" [formGroup]="loginForm" (ngSubmit)="signIn()">
+    <div class="field">
+      <label for="username">Login</label>
+      <input
+        id="username"
+        type="text"
+        formControlName="username"
+        autocomplete="username"
+        placeholder="Your login"
+      />
+      @if (showError('username')) {
+        <p class="field-error">Login is required.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        autocomplete="current-password"
+        placeholder="Your password"
+      />
+      @if (showError('password')) {
+        <p class="field-error">Password is required.</p>
+      }
+    </div>
+
+    @if (rejected()) {
+      <p class="reject-note">
+        Wrong login or password. The cellar stays shut.
+      </p>
+    }
+
+    <button class="btn btn-primary btn-block" type="submit" [disabled]="checking()">
+      {{ checking() ? 'Checking…' : 'Unlock the Cellar' }}
+    </button>
+  </form>
+</section>

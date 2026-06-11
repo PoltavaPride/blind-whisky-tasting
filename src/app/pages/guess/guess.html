@@ -1,0 +1,46 @@
+<section class="page page-narrow">
+  @if (round() === undefined) {
+    <p class="muted center">Pouring…</p>
+  } @else if (round() === null) {
+    <div class="card center">
+      <h1>Round not found</h1>
+      <p class="muted">
+        This tasting round doesn't exist or has been removed. Ask your host
+        for a fresh QR code.
+      </p>
+    </div>
+  } @else if (submittedGuess(); as guess) {
+    <div class="card confirm-card">
+      <div class="confirm-icon">🥃</div>
+      <h1>Sláinte, {{ guess.firstName }}!</h1>
+      <p class="lede">
+        Your guesses are locked in. Sit back, enjoy the dram — your host
+        will reveal the scores.
+      </p>
+      <dl class="recap">
+        @for (field of fields; track field) {
+          <div>
+            <dt>{{ fieldLabels[field] }}</dt>
+            <dd>{{ guess.answers[field] }}</dd>
+          </div>
+        }
+      </dl>
+    </div>
+  } @else {
+    <header class="page-head center">
+      <p class="eyebrow">Round {{ id() }}</p>
+      <h1>Trust Your Palate, {{ participant()?.firstName }}</h1>
+      <p class="lede">
+        Nose it, sip it, sit with it — then commit to your guesses.
+        One point per correct answer.
+      </p>
+    </header>
+
+    <form class="card form-card" [formGroup]="guessForm" (ngSubmit)="submit()">
+      <app-whisky-fields [group]="guessForm" />
+      <button class="btn btn-primary btn-block" type="submit">
+        Submit My Guesses
+      </button>
+    </form>
+  }
+</section>
