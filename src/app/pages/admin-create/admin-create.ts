@@ -52,7 +52,9 @@ export class AdminCreate {
   }
 
   protected joinUrl(round: TastingRound): string {
-    return `${location.origin}/tasting/${round.id}/join`;
+    // Resolve against <base href> so the link keeps the deployment's base
+    // path (e.g. /blind-whisky-tasting/ on GitHub Pages), not just the origin.
+    return new URL(`tasting/${round.id}/join`, document.baseURI).toString();
   }
 
   protected async copyLink(round: TastingRound): Promise<void> {
