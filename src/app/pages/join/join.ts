@@ -1,4 +1,12 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  untracked,
+} from '@angular/core';
 import {
   FormControl,
   NonNullableFormBuilder,
@@ -8,6 +16,7 @@ import {
 import { Router } from '@angular/router';
 import { TastingRound } from '../../models/whisky.models';
 import { TastingService } from '../../services/tasting.service';
+import { describeError } from '../../utils/errors';
 
 @Component({
   selector: 'app-join',
@@ -35,15 +44,29 @@ export class Join {
   });
 
   protected readonly round = signal<TastingRound | null | undefined>(undefined);
-  protected readonly loading = computed(() => this.round() === undefined);
+  protected readonly loadError = signal<string | null>(null);
+  protected readonly loading = computed(
+    () => this.round() === undefined && !this.loadError(),
+  );
 
   constructor() {
-    // input() values are available once the component is created by the router.
-    queueMicrotask(() =>
-      this.tastingService
-        .getRound(this.id())
-        .subscribe((round) => this.round.set(round ?? null)),
-    );
+    effect(() => {
+      const id = this.id();
+      untracked(() => this.loadRound(id));
+    });
+  }
+
+  protected retry(): void {
+    this.loadRound(this.id());
+  }
+
+  private loadRound(id: string): void {
+    this.loadError.set(null);
+    this.round.set(undefined);
+    this.tastingService.getRound(id).subscribe({
+      next: (round) => this.round.set(round ?? null),
+      error: (err) => this.loadError.set(describeError(err)),
+    });
   }
 
   protected join(): void {

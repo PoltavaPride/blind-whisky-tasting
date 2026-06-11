@@ -1,6 +1,14 @@
 <section class="page page-narrow">
   @if (loading()) {
     <p class="muted center">Pouring…</p>
+  } @else if (loadError(); as error) {
+    <div class="card center">
+      <h1>Can't Reach the Cellar</h1>
+      <p class="lede">{{ error }}</p>
+      <button class="btn btn-primary retry-btn" type="button" (click)="retry()">
+        Try again
+      </button>
+    </div>
   } @else if (round() === null) {
     <div class="card center">
       <h1>Round not found</h1>

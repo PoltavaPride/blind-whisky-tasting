@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin, of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, forkJoin, of, throwError } from 'rxjs';
+import { catchError, map, switchMap, timeout } from 'rxjs/operators';
 import {
   FIREBASE_API_KEY,
   FIRESTORE_BASE_URL,
@@ -60,10 +60,20 @@ export class TastingService {
       .pipe(map(() => round));
   }
 
+  /**
+   * Resolves to the round, or undefined when it doesn't exist. Network
+   * failures and timeouts propagate as errors so pages can show a retry
+   * state instead of hanging on a loader.
+   */
   getRound(id: string): Observable<TastingRound | undefined> {
     return this.http.get<FirestoreDocument>(this.docUrl(`rounds/${id}`)).pipe(
+      timeout(15000),
       map((doc) => this.decodeRound(doc)),
-      catchError(() => of(undefined)),
+      catchError((err) =>
+        err instanceof HttpErrorResponse && err.status === 404
+          ? of(undefined)
+          : throwError(() => err),
+      ),
     );
   }
 
