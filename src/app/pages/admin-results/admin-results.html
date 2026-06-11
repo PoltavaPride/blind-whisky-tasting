@@ -108,6 +108,9 @@
       }
 
       <div class="results-actions">
+        <button class="btn btn-primary" type="button" (click)="copyJoinLink()">
+          {{ copied() ? 'Copied ✓' : 'Copy join link' }}
+        </button>
         <button class="btn btn-ghost" type="button" (click)="refresh()">
           Refresh now
         </button>

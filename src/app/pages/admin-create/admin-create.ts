@@ -10,6 +10,7 @@ import { QrCode } from '../../components/qr-code/qr-code';
 import { WhiskyFields } from '../../components/whisky-fields/whisky-fields';
 import { TastingRound } from '../../models/whisky.models';
 import { TastingService } from '../../services/tasting.service';
+import { copyToClipboard, joinUrlFor } from '../../utils/share';
 import { createWhiskyProfileGroup } from '../../utils/whisky-form';
 
 @Component({
@@ -52,25 +53,11 @@ export class AdminCreate {
   }
 
   protected joinUrl(round: TastingRound): string {
-    // Resolve against <base href> so the link keeps the deployment's base
-    // path (e.g. /blind-whisky-tasting/ on GitHub Pages), not just the origin.
-    return new URL(`tasting/${round.id}/join`, document.baseURI).toString();
+    return joinUrlFor(round.id);
   }
 
   protected async copyLink(round: TastingRound): Promise<void> {
-    const url = this.joinUrl(round);
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch {
-      // Clipboard API can be blocked (e.g. embedded iframes) — fall back
-      // to a temporary input + execCommand.
-      const helper = document.createElement('textarea');
-      helper.value = url;
-      document.body.appendChild(helper);
-      helper.select();
-      document.execCommand('copy');
-      helper.remove();
-    }
+    await copyToClipboard(this.joinUrl(round));
     this.copied.set(true);
     setTimeout(() => this.copied.set(false), 2000);
   }

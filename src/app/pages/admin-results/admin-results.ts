@@ -8,6 +8,7 @@ import {
   WHISKY_FIELDS,
 } from '../../models/whisky.models';
 import { TastingService } from '../../services/tasting.service';
+import { copyToClipboard, joinUrlFor } from '../../utils/share';
 
 const REFRESH_INTERVAL_MS = 5000;
 
@@ -27,6 +28,7 @@ export class AdminResults {
   protected readonly round = signal<TastingRound | null | undefined>(undefined);
   protected readonly guesses = signal<ScoredGuess[]>([]);
   protected readonly bottleRevealed = signal(false);
+  protected readonly copied = signal(false);
 
   protected readonly fields = WHISKY_FIELDS;
   protected readonly fieldLabels = WHISKY_FIELD_LABELS;
@@ -48,5 +50,11 @@ export class AdminResults {
     this.tastingService
       .getScoredGuesses(this.id())
       .subscribe((guesses) => this.guesses.set(guesses));
+  }
+
+  protected async copyJoinLink(): Promise<void> {
+    await copyToClipboard(joinUrlFor(this.id()));
+    this.copied.set(true);
+    setTimeout(() => this.copied.set(false), 2000);
   }
 }
