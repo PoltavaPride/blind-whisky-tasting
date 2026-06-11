@@ -38,6 +38,11 @@ export interface TastingRound {
   label: string;
   bottle: WhiskyProfile;
   createdAt: string; // ISO timestamp
+  /**
+   * Set when the admin reveals the bottle, which finishes the round and
+   * closes it for new guesses. Empty string while the round is active.
+   */
+  finishedAt: string;
 }
 
 /** A participant identity, captured on the join page. */

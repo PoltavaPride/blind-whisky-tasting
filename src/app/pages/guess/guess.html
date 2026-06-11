@@ -26,6 +26,15 @@
         }
       </dl>
     </div>
+  } @else if (round()?.finishedAt) {
+    <div class="card center">
+      <div class="confirm-icon">🔒</div>
+      <h1>This Round Is Finished</h1>
+      <p class="lede">
+        The host has revealed the bottle, so guesses are closed. Better
+        luck with the next dram!
+      </p>
+    </div>
   } @else {
     <header class="page-head center">
       <p class="eyebrow">Round {{ id() }}</p>

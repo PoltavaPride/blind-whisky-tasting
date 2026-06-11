@@ -1,4 +1,11 @@
-import { Component, DestroyRef, inject, input, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
@@ -27,8 +34,11 @@ export class AdminResults {
 
   protected readonly round = signal<TastingRound | null | undefined>(undefined);
   protected readonly guesses = signal<ScoredGuess[]>([]);
-  protected readonly bottleRevealed = signal(false);
   protected readonly copied = signal(false);
+  /** True while the "finish the round?" confirmation modal is open. */
+  protected readonly confirmingReveal = signal(false);
+  /** Revealing is permanent: it follows the round's finished state. */
+  protected readonly revealed = computed(() => !!this.round()?.finishedAt);
 
   protected readonly fields = WHISKY_FIELDS;
   protected readonly fieldLabels = WHISKY_FIELD_LABELS;
@@ -50,6 +60,23 @@ export class AdminResults {
     this.tastingService
       .getScoredGuesses(this.id())
       .subscribe((guesses) => this.guesses.set(guesses));
+  }
+
+  protected confirmReveal(): void {
+    const round = this.round();
+    if (!round) {
+      return;
+    }
+    this.tastingService.finishRound(round.id).subscribe({
+      next: () => {
+        this.confirmingReveal.set(false);
+        // Re-fetch so the local round carries the new finished state.
+        this.tastingService
+          .getRound(round.id)
+          .subscribe((r) => this.round.set(r ?? null));
+      },
+      error: () => this.confirmingReveal.set(false),
+    });
   }
 
   protected async copyJoinLink(): Promise<void> {

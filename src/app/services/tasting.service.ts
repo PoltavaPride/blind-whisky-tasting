@@ -51,6 +51,7 @@ export class TastingService {
       label,
       bottle,
       createdAt: new Date().toISOString(),
+      finishedAt: '',
     };
     return this.http
       .post(this.collectionUrl('rounds', round.id), {
@@ -79,6 +80,21 @@ export class TastingService {
         ),
         catchError(() => of([])),
       );
+  }
+
+  /**
+   * Marks a round as finished (bottle revealed); participants can no
+   * longer submit guesses. Irreversible by design.
+   */
+  finishRound(id: string): Observable<void> {
+    const url =
+      `${FIRESTORE_BASE_URL}/rounds/${id}` +
+      `?updateMask.fieldPaths=finishedAt&key=${FIREBASE_API_KEY}`;
+    return this.http
+      .patch(url, {
+        fields: { finishedAt: { stringValue: new Date().toISOString() } },
+      })
+      .pipe(map(() => undefined));
   }
 
   /** Removes a round together with all guesses submitted for it. */
@@ -236,6 +252,7 @@ export class TastingService {
     return {
       label: { stringValue: round.label },
       createdAt: { stringValue: round.createdAt },
+      finishedAt: { stringValue: round.finishedAt },
       bottle: { mapValue: { fields: this.profileFields(round.bottle) } },
     };
   }
@@ -261,6 +278,7 @@ export class TastingService {
       id: this.idFromName(doc.name),
       label: this.str(doc.fields, 'label'),
       createdAt: this.str(doc.fields, 'createdAt'),
+      finishedAt: this.str(doc.fields, 'finishedAt'),
       bottle: this.decodeProfile(doc.fields?.['bottle']?.mapValue?.fields),
     };
   }

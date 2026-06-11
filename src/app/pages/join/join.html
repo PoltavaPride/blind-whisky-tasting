@@ -9,6 +9,14 @@
         for a fresh QR code.
       </p>
     </div>
+  } @else if (round()?.finishedAt) {
+    <div class="card center">
+      <h1>This Round Is Finished</h1>
+      <p class="lede">
+        The host has already revealed the bottle, so this round is closed
+        for new guesses. Ask your host to start a new one!
+      </p>
+    </div>
   } @else {
     <header class="page-head center">
       <p class="eyebrow">Blind Tasting</p>

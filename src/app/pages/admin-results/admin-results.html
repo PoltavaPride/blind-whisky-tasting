@@ -21,15 +21,19 @@
       <div class="card bottle-card">
         <div class="bottle-card-head">
           <h3>The Bottle</h3>
-          <button
-            class="btn btn-ghost btn-sm"
-            type="button"
-            (click)="bottleRevealed.set(!bottleRevealed())"
-          >
-            {{ bottleRevealed() ? 'Hide' : 'Reveal' }}
-          </button>
+          @if (revealed()) {
+            <span class="badge badge-success">Round finished</span>
+          } @else {
+            <button
+              class="btn btn-ghost btn-sm"
+              type="button"
+              (click)="confirmingReveal.set(true)"
+            >
+              Reveal
+            </button>
+          }
         </div>
-        @if (bottleRevealed()) {
+        @if (revealed()) {
           <dl class="bottle-grid">
             @for (field of fields; track field) {
               <div>
@@ -41,6 +45,7 @@
         } @else {
           <p class="muted">
             Hidden so you can screen-share without spoiling the reveal.
+            Revealing finishes the round and closes it for new guesses.
           </p>
         }
       </div>
@@ -84,9 +89,9 @@
                     </td>
                     <td class="nickname">{{ guess.firstName }} {{ guess.lastName }}</td>
                     @for (field of fields; track field) {
-                      <td [class.correct]="bottleRevealed() && guess.correctness[field]">
+                      <td [class.correct]="revealed() && guess.correctness[field]">
                         {{ guess.answers[field] }}
-                        @if (bottleRevealed() && guess.correctness[field]) {
+                        @if (revealed() && guess.correctness[field]) {
                           <span class="tick">✓</span>
                         }
                       </td>
@@ -116,6 +121,33 @@
         </button>
         <a class="btn btn-ghost" routerLink="/admin">Host dashboard</a>
       </div>
+
+      @if (confirmingReveal()) {
+        <div class="modal-backdrop" (click)="confirmingReveal.set(false)">
+          <div
+            class="card modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reveal-title"
+            (click)="$event.stopPropagation()"
+          >
+            <h3 id="reveal-title">Reveal the bottle?</h3>
+            <p class="muted">
+              This finishes the round: the bottle and correct answers become
+              visible, and guests can no longer submit guesses. This can't
+              be undone.
+            </p>
+            <div class="modal-actions">
+              <button class="btn btn-ghost" type="button" (click)="confirmingReveal.set(false)">
+                Cancel
+              </button>
+              <button class="btn btn-primary" type="button" (click)="confirmReveal()">
+                Reveal &amp; finish
+              </button>
+            </div>
+          </div>
+        </div>
+      }
     }
   }
 </section>

@@ -72,11 +72,19 @@ export class Guess {
       this.guessForm.markAllAsTouched();
       return;
     }
-    this.tastingService
-      .submitGuess(this.id(), participant, this.guessForm.getRawValue())
-      .subscribe((guess) => {
-        this.tastingService.markSubmitted(this.id(), guess.id);
-        this.submittedGuess.set(guess);
-      });
+    // Re-check the round right before submitting: the host may have
+    // finished it while this form was open.
+    this.tastingService.getRound(this.id()).subscribe((round) => {
+      this.round.set(round ?? null);
+      if (!round || round.finishedAt) {
+        return; // template switches to the "round finished" state
+      }
+      this.tastingService
+        .submitGuess(this.id(), participant, this.guessForm.getRawValue())
+        .subscribe((guess) => {
+          this.tastingService.markSubmitted(this.id(), guess.id);
+          this.submittedGuess.set(guess);
+        });
+    });
   }
 }
