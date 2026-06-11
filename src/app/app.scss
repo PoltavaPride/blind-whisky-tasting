@@ -11,11 +11,30 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 1rem;
   padding: 0.9rem 1.2rem;
 
+  // When signed in, the brand sits left and the button right — they can
+  // never overlap. On wider screens a spacer mirrors the button's width
+  // to keep the brand visually centered.
+  &:has(.sign-out) {
+    justify-content: space-between;
+  }
+
   .sign-out {
-    position: absolute;
-    right: 1rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 640px) {
+    &:has(.sign-out)::before {
+      content: '';
+      width: 5.2rem; // mirrors the sign-out button
+    }
+
+    .sign-out {
+      width: 5.2rem;
+    }
   }
   background: rgba(14, 9, 5, 0.82);
   backdrop-filter: blur(12px);
@@ -40,10 +59,15 @@
   font-family: var(--font-display);
   font-size: 1.15rem;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 
   em {
     font-style: italic;
     color: var(--gold-bright);
+  }
+
+  @media (max-width: 420px) {
+    font-size: 1rem;
   }
 }
 
