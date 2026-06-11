@@ -1,5 +1,11 @@
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import {
+  FIREBASE_API_KEY,
+  FIRESTORE_BASE_URL,
+} from './firebase.config';
 import {
   Guess,
   Participant,
@@ -10,17 +16,33 @@ import {
   WhiskyProfile,
 } from '../models/whisky.models';
 
-const ROUNDS_KEY = 'bwt.rounds';
-const GUESSES_KEY = 'bwt.guesses';
+/** Minimal slice of Firestore's REST document representation. */
+interface FirestoreFields {
+  [key: string]: {
+    stringValue?: string;
+    mapValue?: { fields?: FirestoreFields };
+  };
+}
+
+interface FirestoreDocument {
+  name: string;
+  fields?: FirestoreFields;
+}
+
+interface RunQueryResult {
+  document?: FirestoreDocument;
+}
 
 /**
- * Mock persistence layer for tasting rounds and guesses, backed by
- * localStorage. Every method returns an Observable so the implementation
- * can be replaced with an HttpClient-based service without changing any
- * component code.
+ * Persistence layer for tasting rounds and guesses, backed by Cloud
+ * Firestore via its REST API so rounds and guesses are shared across all
+ * devices. Participant session state (who am I, did I submit) stays local
+ * in sessionStorage.
  */
 @Injectable({ providedIn: 'root' })
 export class TastingService {
+  private readonly http = inject(HttpClient);
+
   // ----- Rounds -------------------------------------------------------
 
   createRound(bottle: WhiskyProfile, label: string): Observable<TastingRound> {
@@ -30,31 +52,47 @@ export class TastingService {
       bottle,
       createdAt: new Date().toISOString(),
     };
-    this.write(ROUNDS_KEY, [...this.readRounds(), round]);
-    return of(round);
+    return this.http
+      .post(this.collectionUrl('rounds', round.id), {
+        fields: this.roundFields(round),
+      })
+      .pipe(map(() => round));
   }
 
   getRound(id: string): Observable<TastingRound | undefined> {
-    return of(this.readRounds().find((r) => r.id === id));
+    return this.http.get<FirestoreDocument>(this.docUrl(`rounds/${id}`)).pipe(
+      map((doc) => this.decodeRound(doc)),
+      catchError(() => of(undefined)),
+    );
   }
 
   getRounds(): Observable<TastingRound[]> {
-    return of(
-      [...this.readRounds()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-    );
+    return this.http
+      .get<{ documents?: FirestoreDocument[] }>(
+        `${this.docUrl('rounds')}&pageSize=300`,
+      )
+      .pipe(
+        map((res) =>
+          (res.documents ?? [])
+            .map((doc) => this.decodeRound(doc))
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+        ),
+        catchError(() => of([])),
+      );
   }
 
   /** Removes a round together with all guesses submitted for it. */
   deleteRound(id: string): Observable<void> {
-    this.write(
-      ROUNDS_KEY,
-      this.readRounds().filter((r) => r.id !== id),
+    return this.queryGuesses(id).pipe(
+      switchMap((guesses) => {
+        const deletions = [
+          this.http.delete(this.docUrl(`rounds/${id}`)),
+          ...guesses.map((g) => this.http.delete(this.docUrl(`guesses/${g.id}`))),
+        ];
+        return forkJoin(deletions);
+      }),
+      map(() => undefined),
     );
-    this.write(
-      GUESSES_KEY,
-      this.readGuesses().filter((g) => g.roundId !== id),
-    );
-    return of(undefined);
   }
 
   // ----- Guesses ------------------------------------------------------
@@ -72,12 +110,20 @@ export class TastingService {
       answers,
       submittedAt: new Date().toISOString(),
     };
-    this.write(GUESSES_KEY, [...this.readGuesses(), guess]);
-    return of(guess);
+    return this.http
+      .post(this.collectionUrl('guesses', guess.id), {
+        fields: this.guessFields(guess),
+      })
+      .pipe(map(() => guess));
   }
 
   getGuess(guessId: string): Observable<Guess | undefined> {
-    return of(this.readGuesses().find((g) => g.id === guessId));
+    return this.http
+      .get<FirestoreDocument>(this.docUrl(`guesses/${guessId}`))
+      .pipe(
+        map((doc) => this.decodeGuess(doc)),
+        catchError(() => of(undefined)),
+      );
   }
 
   /**
@@ -85,18 +131,50 @@ export class TastingService {
    * best score first; ties broken by earliest submission.
    */
   getScoredGuesses(roundId: string): Observable<ScoredGuess[]> {
-    const round = this.readRounds().find((r) => r.id === roundId);
-    if (!round) {
-      return of([]);
-    }
-    const scored = this.readGuesses()
-      .filter((g) => g.roundId === roundId)
-      .map((g) => this.scoreGuess(round.bottle, g))
-      .sort(
-        (a, b) =>
-          b.score - a.score || a.submittedAt.localeCompare(b.submittedAt),
+    return forkJoin({
+      round: this.getRound(roundId),
+      guesses: this.queryGuesses(roundId),
+    }).pipe(
+      map(({ round, guesses }) => {
+        if (!round) {
+          return [];
+        }
+        return guesses
+          .map((g) => this.scoreGuess(round.bottle, g))
+          .sort(
+            (a, b) =>
+              b.score - a.score || a.submittedAt.localeCompare(b.submittedAt),
+          );
+      }),
+    );
+  }
+
+  private queryGuesses(roundId: string): Observable<Guess[]> {
+    const body = {
+      structuredQuery: {
+        from: [{ collectionId: 'guesses' }],
+        where: {
+          fieldFilter: {
+            field: { fieldPath: 'roundId' },
+            op: 'EQUAL',
+            value: { stringValue: roundId },
+          },
+        },
+      },
+    };
+    return this.http
+      .post<RunQueryResult[]>(
+        `${FIRESTORE_BASE_URL}:runQuery?key=${FIREBASE_API_KEY}`,
+        body,
+      )
+      .pipe(
+        map((results) =>
+          results
+            .filter((r) => r.document)
+            .map((r) => this.decodeGuess(r.document!)),
+        ),
+        catchError(() => of([])),
       );
-    return of(scored);
   }
 
   private scoreGuess(bottle: WhiskyProfile, guess: Guess): ScoredGuess {
@@ -144,26 +222,72 @@ export class TastingService {
     return sessionStorage.getItem(`bwt.submitted.${roundId}`);
   }
 
-  // ----- Storage helpers ------------------------------------------------
+  // ----- Firestore encoding/decoding -----------------------------------
 
-  private readRounds(): TastingRound[] {
-    return this.read<TastingRound>(ROUNDS_KEY);
+  private docUrl(path: string): string {
+    return `${FIRESTORE_BASE_URL}/${path}?key=${FIREBASE_API_KEY}`;
   }
 
-  private readGuesses(): Guess[] {
-    return this.read<Guess>(GUESSES_KEY);
+  private collectionUrl(collection: string, documentId: string): string {
+    return `${FIRESTORE_BASE_URL}/${collection}?documentId=${documentId}&key=${FIREBASE_API_KEY}`;
   }
 
-  private read<T>(key: string): T[] {
-    try {
-      return JSON.parse(localStorage.getItem(key) ?? '[]') as T[];
-    } catch {
-      return [];
-    }
+  private roundFields(round: TastingRound): FirestoreFields {
+    return {
+      label: { stringValue: round.label },
+      createdAt: { stringValue: round.createdAt },
+      bottle: { mapValue: { fields: this.profileFields(round.bottle) } },
+    };
   }
 
-  private write(key: string, value: unknown): void {
-    localStorage.setItem(key, JSON.stringify(value));
+  private guessFields(guess: Guess): FirestoreFields {
+    return {
+      roundId: { stringValue: guess.roundId },
+      firstName: { stringValue: guess.firstName },
+      lastName: { stringValue: guess.lastName },
+      submittedAt: { stringValue: guess.submittedAt },
+      answers: { mapValue: { fields: this.profileFields(guess.answers) } },
+    };
+  }
+
+  private profileFields(profile: WhiskyProfile): FirestoreFields {
+    return Object.fromEntries(
+      WHISKY_FIELDS.map((field) => [field, { stringValue: profile[field] }]),
+    );
+  }
+
+  private decodeRound(doc: FirestoreDocument): TastingRound {
+    return {
+      id: this.idFromName(doc.name),
+      label: this.str(doc.fields, 'label'),
+      createdAt: this.str(doc.fields, 'createdAt'),
+      bottle: this.decodeProfile(doc.fields?.['bottle']?.mapValue?.fields),
+    };
+  }
+
+  private decodeGuess(doc: FirestoreDocument): Guess {
+    return {
+      id: this.idFromName(doc.name),
+      roundId: this.str(doc.fields, 'roundId'),
+      firstName: this.str(doc.fields, 'firstName'),
+      lastName: this.str(doc.fields, 'lastName'),
+      submittedAt: this.str(doc.fields, 'submittedAt'),
+      answers: this.decodeProfile(doc.fields?.['answers']?.mapValue?.fields),
+    };
+  }
+
+  private decodeProfile(fields?: FirestoreFields): WhiskyProfile {
+    return Object.fromEntries(
+      WHISKY_FIELDS.map((field) => [field, this.str(fields, field)]),
+    ) as unknown as WhiskyProfile;
+  }
+
+  private str(fields: FirestoreFields | undefined, key: string): string {
+    return fields?.[key]?.stringValue ?? '';
+  }
+
+  private idFromName(name: string): string {
+    return name.split('/').pop() ?? '';
   }
 
   private generateId(): string {
