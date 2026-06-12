@@ -311,8 +311,8 @@ export const DISTILLERIES: DistilleryOption[] = [...RAW_DISTILLERIES].sort(
 );
 
 export const AGES: string[] = [
-  'NAS',
-  '3 to <6 years',
+  'NAS (No Age Statement)',
+  '4 to <6 years',
   '6 to <9 years',
   '9 to <11 years',
   '11 to <13 years',
