@@ -347,11 +347,12 @@ export const CASK_TYPES: string[] = [
 
 export const STRENGTHS: string[] = [
   '40% ABV',
-  '41–43% ABV',
-  '44–46% ABV',
-  '47–49% ABV',
-  '50–52% ABV',
-  '53–55% ABV',
-  '56–60% ABV',
-  '61%+ ABV',
+  '40.01–43% ABV',
+  '43.01–46% ABV',
+  '46.01–49% ABV',
+  '49.01–52% ABV',
+  '52.01–55% ABV',
+  '55.01–58% ABV',
+  '58.01–61% ABV',
+  '61.01%+ ABV',
 ];
